@@ -5,6 +5,27 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 
+# Check available transcription backends
+try:
+    import whisperx
+
+    WHISPERX_AVAILABLE = True
+except ImportError:
+    WHISPERX_AVAILABLE = False
+
+try:
+    import openai
+
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+
+if not WHISPERX_AVAILABLE and not OPENAI_AVAILABLE:
+    raise EnvironmentError(
+        "No transcription backend found. Install whisperx or openai."
+    )
+
+
 load_dotenv()
 
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -34,14 +55,22 @@ def get_audio_path():
 
 
 def transcribe_audio(audio_path):
-    """Step 1: Transcribe audio using Whisper API"""
     print("\n[1/3] Transcribing audio...")
-    with open(audio_path, "rb") as audio_file:
-        transcript = client.audio.transcriptions.create(
-            model="whisper-1", file=audio_file
-        )
+    if WHISPERX_AVAILABLE:
+        # WhisperX transcription
+        model = whisperx.load_model("base", device="cpu")
+        result = model.transcribe(audio_path)
+        transcript = " ".join([seg["text"] for seg in result["segments"]])
+    else:
+        # Fallback to OpenAI Whisper API
+        client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        with open(audio_path, "rb") as audio_file:
+            result = client.audio.transcriptions.create(
+                model="whisper-1", file=audio_file
+            )
+        transcript = result.text
     print("      Done!")
-    return transcript.text
+    return transcript
 
 
 def format_transcript(transcript):
@@ -166,8 +195,11 @@ def get_input():
     print("\n" + "=" * 50)
     print("  CIU Analysis Pipeline")
     print("=" * 50)
+
+    backend = "WhisperX" if WHISPERX_AVAILABLE else "OpenAI Whisper"
+    print(f"\nTranscription backend: {backend}")
     print("\nWhat would you like to input?")
-    print("  1. Audio file (will transcribe using WhisperX)")
+    print(f"  1. Audio file (will transcribe using {backend})")
     print("  2. Existing transcript file (skip transcription)")
     print()
 
