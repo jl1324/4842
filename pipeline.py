@@ -255,7 +255,10 @@ def run_pipeline():
     print(f"      Report saved: {html_file}")
 
     webbrowser.open(f"file://{os.path.abspath(html_file)}")
-    print("\n  Done! Report opened in browser.")
+    print(f"\n  Report saved to: {os.path.abspath(html_file)}")
+    print(
+        "  Copy this file to your local machine to view it if it wasn't opened automatically."
+    )
     print("=" * 50 + "\n")
 
 
