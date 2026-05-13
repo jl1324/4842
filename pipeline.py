@@ -5,6 +5,18 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 
+import http.server
+import socketserver
+import threading
+
+
+def serve():
+    os.chdir("reports")
+    handler = http.server.SimpleHTTPRequestHandler
+    with socketserver.TCPServer(("", 8080), handler) as httpd:
+        httpd.serve_forever()
+
+
 # Check available transcription backends
 try:
     import whisperx
@@ -254,11 +266,11 @@ def run_pipeline():
         f.write(html)
     print(f"      Report saved: {html_file}")
 
-    webbrowser.open(f"file://{os.path.abspath(html_file)}")
-    print(f"\n  Report saved to: {os.path.abspath(html_file)}")
+    threading.Thread(target=serve, daemon=True).start()
     print(
-        "  Copy this file to your local machine to view it if it wasn't opened automatically."
+        f"\n  Open in your browser: http://<your-vm-ip>:8080/{os.path.basename(html_file)}"
     )
+    input("  Press Enter to exit...")
     print("=" * 50 + "\n")
 
 
