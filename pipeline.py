@@ -1,4 +1,5 @@
 import os
+import openai
 import webbrowser
 from datetime import datetime
 from dotenv import load_dotenv
@@ -16,8 +17,6 @@ try:
     import openai
 
     OPENAI_AVAILABLE = True
-    client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
 except ImportError:
     OPENAI_AVAILABLE = False
 
@@ -28,6 +27,8 @@ if not WHISPERX_AVAILABLE and not OPENAI_AVAILABLE:
 
 
 load_dotenv()
+
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Create output folders if they don't exist
 os.makedirs("reports", exist_ok=True)
