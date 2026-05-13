@@ -232,8 +232,7 @@ def get_input():
     else:
         print("Invalid choice, defaulting to audio input.")
         return get_input()
-
-
+    
 def run_pipeline():
     input_type, path = get_input()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

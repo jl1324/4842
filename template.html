@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 
 <head>
@@ -132,6 +133,8 @@
     <div class="annotation">
         {{ANNOTATION_HTML}}
     </div>
+    <button onclick="exportCLAN()">Download as CLAN (.cha)</button>
+
     <script>
         const wordStates = {};
         document.querySelectorAll('.ciu, .non-ciu').forEach(el => {
@@ -156,6 +159,36 @@
             const ciuPercent = total > 0 ? (ciuCount / total * 100).toFixed(1) : 0;
             document.getElementById('ciu-count').textContent = ciuCount;
             document.getElementById('ciu-percent').textContent = ciuPercent;
+        }
+        function exportCLAN() {
+            const sentences = document.querySelectorAll('.sentence');
+            let output = '@Begin\n@Languages:\teng\n@Participants:\tPAR Participant\n\n';
+
+            sentences.forEach(sentence => {
+                const words = sentence.querySelectorAll('span');
+                let utterance = '*PAR:\t';
+                let morLine = '%mor:\t';
+                let ciuLine = '%ciu:\t';
+
+                words.forEach(word => {
+                    const text = word.textContent;
+                    const isCIU = word.classList.contains('ciu');
+                    utterance += text + ' ';
+                    ciuLine += (isCIU ? '+' : '-') + '|' + text + ' ';
+                });
+
+                output += utterance.trim() + ' .\n';
+                output += ciuLine.trim() + '\n\n';
+            });
+
+            output += '@End';
+
+            // Trigger download
+            const blob = new Blob([output], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'ciu_output.cha';
+            a.click();
         }
     </script>
 </body>
