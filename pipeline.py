@@ -232,7 +232,8 @@ def get_input():
     else:
         print("Invalid choice, defaulting to audio input.")
         return get_input()
-    
+
+
 def run_pipeline():
     input_type, path = get_input()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -267,7 +268,7 @@ def run_pipeline():
 
     threading.Thread(target=serve, daemon=True).start()
     print(
-        f"\n  Open in your browser: http://<your-vm-ip>:8080/{os.path.basename(html_file)}"
+        f"\n  Open in your browser: http://35.189.169.32:8080/{os.path.basename(html_file)}"
     )
     input("  Press Enter to exit...")
     print("=" * 50 + "\n")
