@@ -11,11 +11,12 @@ import threading
 
 
 def serve():
-    os.chdir("reports")
-    handler = http.server.SimpleHTTPRequestHandler
+    reports_dir = os.path.abspath("reports")
+    handler = lambda *args, **kwargs: http.server.SimpleHTTPRequestHandler(
+        *args, directory=reports_dir, **kwargs
+    )
     with socketserver.TCPServer(("", 8080), handler) as httpd:
         httpd.serve_forever()
-
 
 # Check available transcription backends
 try:
