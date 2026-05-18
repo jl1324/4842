@@ -18,15 +18,18 @@ def serve():
     with socketserver.TCPServer(("", 8080), handler) as httpd:
         httpd.serve_forever()
 
+
 # Check available transcription backends
 try:
     import whisperx
+
     WHISPERX_AVAILABLE = True
 except ImportError:
     WHISPERX_AVAILABLE = False
 
 try:
     import openai
+
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
@@ -148,8 +151,7 @@ Transcript:
 {transcript}"""
 
     response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": prompt}]
+        model="gpt-4o", messages=[{"role": "user", "content": prompt}]
     )
 
     print("      Done!")
@@ -190,6 +192,10 @@ def generate_html(transcript, ciu_output, audio_filename):
                 continue
             word = parts[0].strip()
             label = parts[1].strip().upper()
+
+            if word_index > 0 and word.lower() == prev_word.lower():
+                label = "REPEATED"
+            prev_word = word
 
             css_class = label_to_class.get(label, "not-confident")
 
