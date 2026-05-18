@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>CIU Analysis - {{AUDIO_FILENAME}}</title>
     <style>
@@ -11,8 +12,14 @@
             color: #333;
         }
 
-        h1 { color: #222; }
-        h2 { color: #444; margin-top: 30px; }
+        h1 {
+            color: #222;
+        }
+
+        h2 {
+            color: #444;
+            margin-top: 30px;
+        }
 
         .stats {
             background: #f5f5f5;
@@ -46,7 +53,9 @@
             margin-bottom: 20px;
         }
 
-        .raw-transcript p { margin: 4px 0; }
+        .raw-transcript p {
+            margin: 4px 0;
+        }
 
         .legend {
             margin: 15px 0;
@@ -62,7 +71,9 @@
             font-size: 14px;
         }
 
-        .annotation { margin-top: 10px; }
+        .annotation {
+            margin-top: 10px;
+        }
 
         .sentence {
             font-size: 17px;
@@ -149,9 +160,12 @@
             background: #f5f5f5;
         }
 
-        button:hover { background: #e0e0e0; }
+        button:hover {
+            background: #e0e0e0;
+        }
     </style>
 </head>
+
 <body>
     <h1>CIU Analysis Report</h1>
     <p><strong>File:</strong> {{AUDIO_FILENAME}}</p>
@@ -165,7 +179,8 @@
         </p>
         <p>
             <strong>CIU%:</strong> <span id="ciu-percent">{{CIU_PERCENT}}</span>%
-            <span class="pending-notice" id="pending-notice">⚠ <span id="pending-count">{{PENDING_COUNT}}</span> word(s) pending review</span>
+            <span class="pending-notice" id="pending-notice"><span id="pending-count">{{PENDING_COUNT}}</span> word(s)
+                pending review</span>
         </p>
         <p><strong>Not CIU:</strong> <span id="not-ciu-count">{{NOT_CIU_COUNT}}</span></p>
         <p><strong>Repeated:</strong> <span id="repeated-count">{{REPEATED_COUNT}}</span></p>
@@ -183,7 +198,8 @@
         <span class="not-confident">Not a CIU</span>
         <span class="repeated">Repeated</span>
     </div>
-    <p class="note">Click any word to cycle between Confident → Medium → Not a CIU. CIU% = confident CIUs / total words.</p>
+    <p class="note">Click any word to cycle between Confident → Medium → Not a CIU. CIU% = confident CIUs / total words.
+    </p>
 
     <div class="annotation">
         {{ANNOTATION_HTML}}
@@ -278,4 +294,5 @@
         }
     </script>
 </body>
+
 </html>
