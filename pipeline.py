@@ -129,7 +129,6 @@ For each word, assign one of the following labels based on how certain you are i
 - CONFIDENT     → Clearly a CIU with no ambiguity
 - MEDIUM-CONFIDENCE → Could be a CIU, but requires clinical judgement (e.g. borderline relevance, mild ambiguity)
 - NOT-CONFIDENT → Clearly not a CIU (filler, repetition, irrelevant, false start, etc.)
-- REPEATED      → A word repeated from earlier in the transcript that does not add new information
 
 ---
 
@@ -141,7 +140,7 @@ INSTRUCTIONS:
 
 word | LABEL
 
-where LABEL is one of: CONFIDENT, MEDIUM-CONFIDENCE, NOT-CONFIDENT, REPEATED
+where LABEL is one of: CONFIDENT, MEDIUM-CONFIDENCE, NOT-CONFIDENT
 
 Add a blank line between each sentence.
 
