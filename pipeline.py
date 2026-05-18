@@ -137,7 +137,6 @@ INSTRUCTIONS:
 - Label every word in the transcript below.
 - Do NOT include punctuation marks in your output — skip them entirely.
 - Preserve sentence structure by adding a blank line between sentences.
-- Return one word per line in this exact format:
 
 word | LABEL
 
@@ -164,6 +163,7 @@ Transcript:
     print("      Done!")
     # return response.choices[0].message.content
     return result
+
 
 def generate_html(transcript, ciu_output, audio_filename):
     """Step 3: Generate colour-coded interactive HTML output"""
