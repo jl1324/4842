@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-
 <html>
-
 <head>
     <title>CIU Analysis - {{AUDIO_FILENAME}}</title>
     <style>
@@ -13,14 +11,8 @@
             color: #333;
         }
 
-        h1 {
-            color: #222;
-        }
-
-        h2 {
-            color: #444;
-            margin-top: 30px;
-        }
+        h1 { color: #222; }
+        h2 { color: #444; margin-top: 30px; }
 
         .stats {
             background: #f5f5f5;
@@ -34,6 +26,17 @@
             font-size: 16px;
         }
 
+        .pending-notice {
+            display: inline-block;
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 14px;
+            margin-left: 8px;
+        }
+
         .raw-transcript {
             background: #f9f9f9;
             padding: 15px 20px;
@@ -43,24 +46,23 @@
             margin-bottom: 20px;
         }
 
-        .raw-transcript p {
-            margin: 4px 0;
-        }
+        .raw-transcript p { margin: 4px 0; }
 
         .legend {
             margin: 15px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
         }
 
         .legend span {
             padding: 4px 12px;
             border-radius: 4px;
-            margin-right: 10px;
             font-size: 14px;
         }
 
-        .annotation {
-            margin-top: 10px;
-        }
+        .annotation { margin-top: 10px; }
 
         .sentence {
             font-size: 17px;
@@ -75,8 +77,10 @@
             background: #fafafa;
         }
 
-        .ciu {
-            background-color: #90EE90;
+        /* Word states */
+        .confident {
+            background-color: #4caf50;
+            color: #fff;
             padding: 2px 5px;
             border-radius: 4px;
             margin: 1px;
@@ -86,8 +90,9 @@
             transition: opacity 0.1s;
         }
 
-        .non-ciu {
-            background-color: #FFB6C1;
+        .medium-confidence {
+            background-color: #ffc107;
+            color: #333;
             padding: 2px 5px;
             border-radius: 4px;
             margin: 1px;
@@ -97,8 +102,34 @@
             transition: opacity 0.1s;
         }
 
-        .ciu:hover,
-        .non-ciu:hover {
+        .not-confident {
+            background-color: #f44336;
+            color: #fff;
+            padding: 2px 5px;
+            border-radius: 4px;
+            margin: 1px;
+            cursor: pointer;
+            user-select: none;
+            display: inline-block;
+            transition: opacity 0.1s;
+        }
+
+        .repeated {
+            background-color: #64b5f6;
+            color: #fff;
+            padding: 2px 5px;
+            border-radius: 4px;
+            margin: 1px;
+            cursor: pointer;
+            user-select: none;
+            display: inline-block;
+            transition: opacity 0.1s;
+        }
+
+        .confident:hover,
+        .medium-confidence:hover,
+        .not-confident:hover,
+        .repeated:hover {
             opacity: 0.7;
         }
 
@@ -107,59 +138,110 @@
             color: #888;
             margin-top: 8px;
         }
+
+        button {
+            margin-top: 24px;
+            padding: 8px 18px;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            background: #f5f5f5;
+        }
+
+        button:hover { background: #e0e0e0; }
     </style>
 </head>
-
 <body>
     <h1>CIU Analysis Report</h1>
     <p><strong>File:</strong> {{AUDIO_FILENAME}}</p>
     <p><strong>Date:</strong> {{DATE}}</p>
+
     <div class="stats">
         <h2>Results</h2>
         <p><strong>Total words:</strong> <span id="total">{{TOTAL_COUNT}}</span></p>
-        <p><strong>CIUs:</strong> <span id="ciu-count">{{CIU_COUNT}}</span></p>
-        <p><strong>CIU%:</strong> <span id="ciu-percent">{{CIU_PERCENT}}</span>%</p>
+        <p>
+            <strong>CIUs (confident):</strong> <span id="ciu-count">{{CIU_COUNT}}</span>
+        </p>
+        <p>
+            <strong>CIU%:</strong> <span id="ciu-percent">{{CIU_PERCENT}}</span>%
+            <span class="pending-notice" id="pending-notice">⚠ <span id="pending-count">{{PENDING_COUNT}}</span> word(s) pending review</span>
+        </p>
+        <p><strong>Not CIU:</strong> <span id="not-ciu-count">{{NOT_CIU_COUNT}}</span></p>
+        <p><strong>Repeated:</strong> <span id="repeated-count">{{REPEATED_COUNT}}</span></p>
     </div>
+
     <h2>Transcript</h2>
     <div class="raw-transcript">
         {{TRANSCRIPT_HTML}}
     </div>
+
     <h2>CIU Annotation</h2>
     <div class="legend">
-        <span class="ciu">CIU</span>
-        <span class="non-ciu">NON-CIU</span>
+        <span class="confident">Confident CIU</span>
+        <span class="medium-confidence">Medium confidence</span>
+        <span class="not-confident">Not a CIU</span>
+        <span class="repeated">Repeated</span>
     </div>
-    <p class="note">Click any word to toggle between CIU and NON-CIU. Stats update automatically.</p>
+    <p class="note">Click any word to cycle between Confident → Medium → Not a CIU. CIU% = confident CIUs / total words.</p>
+
     <div class="annotation">
         {{ANNOTATION_HTML}}
     </div>
+
     <button onclick="exportCLAN()">Download as CLAN (.cha)</button>
 
     <script>
+        // wordStates stores the current label for each word
+        // Possible values: 'confident', 'medium-confidence', 'not-confident', 'repeated'
         const wordStates = {};
-        document.querySelectorAll('.ciu, .non-ciu').forEach(el => {
-            wordStates[el.id] = el.classList.contains('ciu');
-        });
-        function toggleWord(index) {
-            const el = document.getElementById('word-' + index);
-            const currentlyCIU = wordStates['word-' + index];
-            wordStates['word-' + index] = !currentlyCIU;
-            if (currentlyCIU) {
-                el.classList.remove('ciu');
-                el.classList.add('non-ciu');
-            } else {
-                el.classList.remove('non-ciu');
-                el.classList.add('ciu');
+        const cycleOrder = ['confident', 'medium-confidence', 'not-confident'];
+
+        document.querySelectorAll('.confident, .medium-confidence, .not-confident, .repeated').forEach(el => {
+            if (el.id) {
+                if (el.classList.contains('confident')) wordStates[el.id] = 'confident';
+                else if (el.classList.contains('medium-confidence')) wordStates[el.id] = 'medium-confidence';
+                else if (el.classList.contains('not-confident')) wordStates[el.id] = 'not-confident';
+                else if (el.classList.contains('repeated')) wordStates[el.id] = 'repeated';
             }
+        });
+
+        function toggleWord(index) {
+            const id = 'word-' + index;
+            const el = document.getElementById(id);
+            const current = wordStates[id];
+
+            // Repeated words cycle through the same 3 states as others
+            const currentIndex = cycleOrder.indexOf(current);
+            const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % cycleOrder.length;
+            const next = cycleOrder[nextIndex];
+
+            wordStates[id] = next;
+            el.className = next;
             updateStats();
         }
+
         function updateStats() {
-            const total = Object.keys(wordStates).length;
-            const ciuCount = Object.values(wordStates).filter(Boolean).length;
-            const ciuPercent = total > 0 ? (ciuCount / total * 100).toFixed(1) : 0;
-            document.getElementById('ciu-count').textContent = ciuCount;
+            const states = Object.values(wordStates);
+            const total = states.length;
+            const confidentCount = states.filter(s => s === 'confident').length;
+            const mediumCount = states.filter(s => s === 'medium-confidence').length;
+            const notCiuCount = states.filter(s => s === 'not-confident').length;
+            const repeatedCount = states.filter(s => s === 'repeated').length;
+
+            const ciuPercent = total > 0 ? (confidentCount / total * 100).toFixed(1) : '0.0';
+
+            document.getElementById('total').textContent = total;
+            document.getElementById('ciu-count').textContent = confidentCount;
             document.getElementById('ciu-percent').textContent = ciuPercent;
+            document.getElementById('not-ciu-count').textContent = notCiuCount;
+            document.getElementById('repeated-count').textContent = repeatedCount;
+            document.getElementById('pending-count').textContent = mediumCount;
+
+            const notice = document.getElementById('pending-notice');
+            notice.style.display = mediumCount > 0 ? 'inline-block' : 'none';
         }
+
         function exportCLAN() {
             const sentences = document.querySelectorAll('.sentence');
             let output = '@Begin\n@Languages:\teng\n@Participants:\tPAR Participant\n\n';
@@ -167,14 +249,19 @@
             sentences.forEach(sentence => {
                 const words = sentence.querySelectorAll('span');
                 let utterance = '*PAR:\t';
-                let morLine = '%mor:\t';
                 let ciuLine = '%ciu:\t';
 
                 words.forEach(word => {
                     const text = word.textContent;
-                    const isCIU = word.classList.contains('ciu');
+                    const state = wordStates[word.id] || 'not-confident';
+                    let marker;
+                    if (state === 'confident') marker = '+';
+                    else if (state === 'medium-confidence') marker = '?';
+                    else if (state === 'repeated') marker = 'r';
+                    else marker = '-';
+
                     utterance += text + ' ';
-                    ciuLine += (isCIU ? '+' : '-') + '|' + text + ' ';
+                    ciuLine += marker + '|' + text + ' ';
                 });
 
                 output += utterance.trim() + ' .\n';
@@ -183,7 +270,6 @@
 
             output += '@End';
 
-            // Trigger download
             const blob = new Blob([output], { type: 'text/plain' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
@@ -192,5 +278,4 @@
         }
     </script>
 </body>
-
 </html>
