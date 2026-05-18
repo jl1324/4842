@@ -1,6 +1,7 @@
 import os
 import openai
 import webbrowser
+import anthropic
 from datetime import datetime
 from dotenv import load_dotenv
 import os
@@ -42,8 +43,8 @@ if not WHISPERX_AVAILABLE and not OPENAI_AVAILABLE:
 
 load_dotenv()
 
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
+# client = openai.OpenAI(api_key=os.getenv("LLM_API_KEY"))
+client = anthropic.Anthropic(api_key=os.getenv("LLM_API_KEY"))
 # Create output folders if they don't exist
 os.makedirs("reports", exist_ok=True)
 os.makedirs("transcripts", exist_ok=True)
@@ -149,13 +150,20 @@ Add a blank line between each sentence.
 Transcript:
 {transcript}"""
 
-    response = client.chat.completions.create(
-        model="gpt-4o", messages=[{"role": "user", "content": prompt}]
+    # response = client.chat.completions.create(
+    #     model="gpt-4o", messages=[{"role": "user", "content": prompt}]
+    # )
+
+    response = client.messages.create(
+        model="claude-opus-4-5",
+        max_tokens=1024,
+        messages=[{"role": "user", "content": prompt}],
     )
+    result = response.content[0].text
 
     print("      Done!")
-    return response.choices[0].message.content
-
+    # return response.choices[0].message.content
+    return result
 
 def generate_html(transcript, ciu_output, audio_filename):
     """Step 3: Generate colour-coded interactive HTML output"""
